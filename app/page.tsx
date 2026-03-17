@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, ShieldCheck, Upload, ChartColumnBig, Sparkles, MessageCircle } from "lucide-react";
+import { ChevronRight, ShieldCheck, Upload, ChartColumnBig, Sparkles } from "lucide-react";
 
 const styles = `
   :root {
@@ -50,10 +50,6 @@ const styles = `
   }
 `;
 
-const buttonVariants = {
-  hero: "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full px-6 py-3 text-base font-medium hover:opacity-90 transition-opacity whitespace-nowrap",
-  heroSecondary: "liquid-glass text-[hsl(var(--foreground))] rounded-full px-6 py-3 text-base font-normal hover:bg-white/5 transition-colors whitespace-nowrap",
-};
 
 export default function Home() {
   return (
@@ -76,92 +72,78 @@ export default function Home() {
 
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col flex-grow w-full h-full">
-          {/* Navbar */}
-          <nav className="w-full flex justify-center pt-6 px-4">
-            <div className="liquid-glass rounded-3xl w-full max-w-[850px] flex items-center justify-between px-4 py-3">
-              {/* Logo */}
-              <div className="flex items-center gap-2 cursor-pointer">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border border-white/10 shadow-inner">
-                  <MessageCircle className="w-4 h-4 text-[hsl(var(--foreground))]" />
-                </div>
-                <span className="text-xl font-semibold tracking-wide text-[hsl(var(--foreground))]">
-                  Chat Wrapped
-                </span>
-              </div>
-
-              {/* Nav Items */}
-              <div className="hidden md:flex items-center gap-8">
-                <a href="#features" className="text-base text-[hsl(var(--foreground))]/90 hover:text-[hsl(var(--foreground))] transition-colors">
-                  Features
-                </a>
-                <a href="#privacy" className="text-base text-[hsl(var(--foreground))]/90 hover:text-[hsl(var(--foreground))] transition-colors">
-                  Privacy
-                </a>
-              </div>
-
-              {/* CTA */}
-              <Link href="/upload" className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl px-4 py-2 text-sm font-semibold hover:opacity-90 transition-opacity">
-                Upload Chat
-              </Link>
-            </div>
-          </nav>
-
           {/* Hero Section */}
-          <div className="flex-grow flex flex-col items-center justify-center text-center px-4 mt-16 mb-24 md:mb-32">
+          <div className="flex-grow flex flex-col items-center justify-center text-center px-4 py-20 lg:py-32">
             {/* Announcement Badge */}
-            <div className="liquid-glass rounded-full p-1 pr-3 flex items-center gap-3 mb-8 cursor-pointer group">
-              <div className="bg-white/5 text-[hsl(var(--foreground))] text-sm font-medium px-3 py-1.5 rounded-full flex items-center gap-1">
-                New AI Insights!
-              </div>
-              <div className="flex items-center gap-1 text-sm text-[hsl(var(--foreground))]/80 group-hover:text-[hsl(var(--foreground))] transition-colors">
-                Discover <ChevronRight className="w-4 h-4" />
-              </div>
+            <div className="group relative inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1 pr-4 text-sm backdrop-blur-md transition-colors hover:bg-white/10 mb-8 cursor-pointer">
+              <span className="rounded-full bg-[hsl(var(--primary))] px-3 py-1 font-medium text-[hsl(var(--primary-foreground))]">
+                New
+              </span>
+              <span className="text-[hsl(var(--foreground))]/90">AI Insights Available</span>
+              <ChevronRight className="h-4 w-4 text-[hsl(var(--foreground))]/50 transition-transform group-hover:translate-x-0.5 group-hover:text-[hsl(var(--foreground))]" />
             </div>
 
             {/* Heading */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05] max-w-5xl text-[hsl(var(--hero-heading))] mb-6">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] max-w-5xl text-[hsl(var(--hero-heading))] mb-8 drop-shadow-sm">
               Discover Your
               <br className="hidden sm:block" /> WhatsApp Chat Wrapped
             </h1>
 
             {/* Subheading */}
-            <p className="text-lg sm:text-xl text-[hsl(var(--hero-sub))] max-w-2xl opacity-80 mb-10 leading-relaxed text-balance">
+            <p className="text-lg sm:text-xl text-[hsl(var(--hero-sub))] max-w-2xl opacity-90 mb-12 leading-relaxed text-balance">
               Upload your WhatsApp export and get deep insights about your conversations. See who ghosts the most, your peak chat hours, and let AI reveal your relationship dynamics.
             </p>
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link href="/upload" className={buttonVariants.hero}>
+              <Link href="/upload" className="rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-8 py-4 text-lg font-semibold shadow-[0_0_40px_-10px_hsl(var(--primary))] hover:scale-105 hover:shadow-[0_0_60px_-15px_hsl(var(--primary))] transition-all duration-300">
                 Analyze My Chat
               </Link>
-              <a href="#features" className={buttonVariants.heroSecondary}>
+              <a href="#features" className="rounded-full border border-white/10 bg-white/5 px-8 py-4 text-lg font-medium text-[hsl(var(--foreground))] backdrop-blur-md transition-all hover:bg-white/10 hover:text-white">
                 See Features
               </a>
             </div>
           </div>
 
           {/* Features / Highlights */}
-          <div id="features" className="w-full border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]/50 backdrop-blur-md py-12 px-6">
-            <div className="max-w-6xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="liquid-glass rounded-2xl p-6">
-                <Upload className="h-6 w-6 text-[hsl(var(--primary))]" />
-                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">Easy Upload</h3>
-                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">Simple upload flow with .txt or .zip files directly from WhatsApp export.</p>
+          <div id="features" className="relative w-full px-6 py-24">
+            {/* Soft Gradient Fade for smooth transition from video */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--background))]/80 to-[hsl(var(--background))] -z-10 pointer-events-none" />
+            
+            <div className="max-w-6xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative z-10">
+              {/* Card 1 */}
+              <div className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[hsl(var(--primary))]/10">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary))]/30 group-hover:ring-[hsl(var(--primary))]/60 transition-all">
+                  <Upload className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">Easy Upload</h3>
+                <p className="text-sm text-[hsl(var(--foreground))]/70 leading-relaxed">Simple upload flow with .txt or .zip files directly from WhatsApp export. No technical skills required.</p>
               </div>
-              <div className="liquid-glass rounded-2xl p-6">
-                <ChartColumnBig className="h-6 w-6 text-[hsl(var(--primary))]" />
-                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">Deep Analytics</h3>
-                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">Heatmaps, ghosting index, double text counts, and word dictionaries.</p>
+              
+              {/* Card 2 */}
+              <div className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[hsl(var(--primary))]/10">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary))]/30 group-hover:ring-[hsl(var(--primary))]/60 transition-all">
+                  <ChartColumnBig className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">Deep Analytics</h3>
+                <p className="text-sm text-[hsl(var(--foreground))]/70 leading-relaxed">Visualize your chat with heatmaps, ghosting index, double text counts, and personalized word dictionaries.</p>
               </div>
-              <div className="liquid-glass rounded-2xl p-6">
-                <Sparkles className="h-6 w-6 text-[hsl(var(--primary))]" />
-                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">AI Insights</h3>
-                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">AI analyzes relationship dynamics, tone, and your very first encounter.</p>
+
+              {/* Card 3 */}
+              <div className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[hsl(var(--primary))]/10">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary))]/30 group-hover:ring-[hsl(var(--primary))]/60 transition-all">
+                  <Sparkles className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">AI Insights</h3>
+                <p className="text-sm text-[hsl(var(--foreground))]/70 leading-relaxed">Let AI analyze your relationship dynamics, conversation tone, and uncover details about your first encounter.</p>
               </div>
-              <div id="privacy" className="liquid-glass rounded-2xl p-6">
-                <ShieldCheck className="h-6 w-6 text-[hsl(var(--primary))]" />
-                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">100% Private</h3>
-                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">No database. Chats are processed in temporary memory and auto-deleted.</p>
+
+              <div id="privacy" className="group relative rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[hsl(var(--primary))]/10">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary))]/30 group-hover:ring-[hsl(var(--primary))]/60 transition-all">
+                  <ShieldCheck className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-semibold text-[hsl(var(--foreground))] mb-3">100% Private</h3>
+                <p className="text-sm text-[hsl(var(--foreground))]/70 leading-relaxed">No database storage. Chats are processed entirely in temporary memory and auto-deleted immediately after.</p>
               </div>
             </div>
           </div>
