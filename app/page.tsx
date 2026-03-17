@@ -1,69 +1,172 @@
+import React from "react";
 import Link from "next/link";
-import { ShieldCheck, Upload, ChartColumnBig, Sparkles } from "lucide-react";
+import { ChevronRight, ShieldCheck, Upload, ChartColumnBig, Sparkles, MessageCircle } from "lucide-react";
+
+const styles = `
+  :root {
+    --background: 260 87% 3%;
+    --foreground: 40 6% 95%;
+    --primary: 121 95% 76%;
+    --primary-foreground: 0 0% 5%;
+    --hero-heading: 40 10% 96%;
+    --hero-sub: 40 6% 82%;
+    --muted: 240 4% 16%;
+    --border: 240 4% 20%;
+  }
+
+  .theme-dark {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  /* Liquid Glass Utility */
+  .liquid-glass {
+    position: relative;
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .liquid-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+      rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+      rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+`;
+
+const buttonVariants = {
+  hero: "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full px-6 py-3 text-base font-medium hover:opacity-90 transition-opacity whitespace-nowrap",
+  heroSecondary: "liquid-glass text-[hsl(var(--foreground))] rounded-full px-6 py-3 text-base font-normal hover:bg-white/5 transition-colors whitespace-nowrap",
+};
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between border-b border-neutral-200 pb-5">
-          <h1 className="text-2xl text-neutral-900">Chat Wrapped</h1>
-          <Link href="/upload" className="rounded-lg bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700">
-            Upload Chat
-          </Link>
-        </header>
+    <>
+      <style>{styles}</style>
+      <div className="theme-dark relative min-h-screen w-full flex flex-col overflow-hidden selection:bg-[hsl(var(--primary))] selection:text-[hsl(var(--primary-foreground))]">
+        {/* Background Video */}
+        <video
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 mix-blend-screen"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260309_042944_4a2205b7-b061-490a-852b-92d9e9955ce9.mp4"
+            type="video/mp4"
+          />
+        </video>
 
-        <section className="grid gap-8 py-12 lg:grid-cols-2">
-          <div className="space-y-5">
-            <p className="text-sm uppercase tracking-[0.2em] text-neutral-500">WhatsApp conversation analytics</p>
-            <h2 className="text-5xl leading-tight text-neutral-900">Discover Your WhatsApp Chat Wrapped</h2>
-            <p className="max-w-xl text-lg text-neutral-600">
-              Upload your WhatsApp export and get deep insights about your conversations. Built for privacy: no database,
-              temporary processing, and clean report pages you can share.
-            </p>
-            <div className="flex gap-3">
-              <Link href="/upload" className="rounded-lg bg-neutral-900 px-5 py-3 text-sm text-white hover:bg-neutral-700">
-                Upload WhatsApp Chat (.txt/.zip)
+        {/* Content Overlay */}
+        <div className="relative z-10 flex flex-col flex-grow w-full h-full">
+          {/* Navbar */}
+          <nav className="w-full flex justify-center pt-6 px-4">
+            <div className="liquid-glass rounded-3xl w-full max-w-[850px] flex items-center justify-between px-4 py-3">
+              {/* Logo */}
+              <div className="flex items-center gap-2 cursor-pointer">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center border border-white/10 shadow-inner">
+                  <MessageCircle className="w-4 h-4 text-[hsl(var(--foreground))]" />
+                </div>
+                <span className="text-xl font-semibold tracking-wide text-[hsl(var(--foreground))]">
+                  Chat Wrapped
+                </span>
+              </div>
+
+              {/* Nav Items */}
+              <div className="hidden md:flex items-center gap-8">
+                <a href="#features" className="text-base text-[hsl(var(--foreground))]/90 hover:text-[hsl(var(--foreground))] transition-colors">
+                  Features
+                </a>
+                <a href="#privacy" className="text-base text-[hsl(var(--foreground))]/90 hover:text-[hsl(var(--foreground))] transition-colors">
+                  Privacy
+                </a>
+              </div>
+
+              {/* CTA */}
+              <Link href="/upload" className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-xl px-4 py-2 text-sm font-semibold hover:opacity-90 transition-opacity">
+                Upload Chat
               </Link>
             </div>
-          </div>
+          </nav>
 
-          <div className="grid gap-3">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-              <p className="text-sm text-neutral-500">Preview Insight Cards</p>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">Total messages</div>
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">Most active chatter</div>
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">Peak chat hour</div>
-                <div className="rounded-xl border border-neutral-200 bg-white p-4">Top topics</div>
+          {/* Hero Section */}
+          <div className="flex-grow flex flex-col items-center justify-center text-center px-4 mt-16 mb-24 md:mb-32">
+            {/* Announcement Badge */}
+            <div className="liquid-glass rounded-full p-1 pr-3 flex items-center gap-3 mb-8 cursor-pointer group">
+              <div className="bg-white/5 text-[hsl(var(--foreground))] text-sm font-medium px-3 py-1.5 rounded-full flex items-center gap-1">
+                New AI Insights!
+              </div>
+              <div className="flex items-center gap-1 text-sm text-[hsl(var(--foreground))]/80 group-hover:text-[hsl(var(--foreground))] transition-colors">
+                Discover <ChevronRight className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-              <p className="text-sm text-neutral-500">Privacy Notice</p>
-              <p className="mt-2 text-sm text-neutral-700">Your chat is processed securely. Raw messages are deleted after analysis.</p>
+            {/* Heading */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05] max-w-5xl text-[hsl(var(--hero-heading))] mb-6">
+              Discover Your
+              <br className="hidden sm:block" /> WhatsApp Chat Wrapped
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-lg sm:text-xl text-[hsl(var(--hero-sub))] max-w-2xl opacity-80 mb-10 leading-relaxed text-balance">
+              Upload your WhatsApp export and get deep insights about your conversations. See who ghosts the most, your peak chat hours, and let AI reveal your relationship dynamics.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Link href="/upload" className={buttonVariants.hero}>
+                Analyze My Chat
+              </Link>
+              <a href="#features" className={buttonVariants.heroSecondary}>
+                See Features
+              </a>
             </div>
           </div>
-        </section>
 
-        <section className="grid gap-4 border-t border-neutral-200 py-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-neutral-200 bg-white p-4">
-            <Upload className="h-5 w-5 text-neutral-700" />
-            <p className="mt-3 text-sm text-neutral-800">Simple upload flow with parsing and progress steps.</p>
+          {/* Features / Highlights */}
+          <div id="features" className="w-full border-t border-[hsl(var(--border))] bg-[hsl(var(--background))]/50 backdrop-blur-md py-12 px-6">
+            <div className="max-w-6xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="liquid-glass rounded-2xl p-6">
+                <Upload className="h-6 w-6 text-[hsl(var(--primary))]" />
+                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">Easy Upload</h3>
+                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">Simple upload flow with .txt or .zip files directly from WhatsApp export.</p>
+              </div>
+              <div className="liquid-glass rounded-2xl p-6">
+                <ChartColumnBig className="h-6 w-6 text-[hsl(var(--primary))]" />
+                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">Deep Analytics</h3>
+                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">Heatmaps, ghosting index, double text counts, and word dictionaries.</p>
+              </div>
+              <div className="liquid-glass rounded-2xl p-6">
+                <Sparkles className="h-6 w-6 text-[hsl(var(--primary))]" />
+                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">AI Insights</h3>
+                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">AI analyzes relationship dynamics, tone, and your very first encounter.</p>
+              </div>
+              <div id="privacy" className="liquid-glass rounded-2xl p-6">
+                <ShieldCheck className="h-6 w-6 text-[hsl(var(--primary))]" />
+                <h3 className="mt-4 text-lg font-medium text-[hsl(var(--foreground))]">100% Private</h3>
+                <p className="mt-2 text-sm text-[hsl(var(--foreground))]/70">No database. Chats are processed in temporary memory and auto-deleted.</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-xl border border-neutral-200 bg-white p-4">
-            <ChartColumnBig className="h-5 w-5 text-neutral-700" />
-            <p className="mt-3 text-sm text-neutral-800">Overview, activity, users, content, and topics dashboards.</p>
-          </div>
-          <div className="rounded-xl border border-neutral-200 bg-white p-4">
-            <Sparkles className="h-5 w-5 text-neutral-700" />
-            <p className="mt-3 text-sm text-neutral-800">AI insights with optional Cerebras integration using env key.</p>
-          </div>
-          <div className="rounded-xl border border-neutral-200 bg-white p-4">
-            <ShieldCheck className="h-5 w-5 text-neutral-700" />
-            <p className="mt-3 text-sm text-neutral-800">No database by default. Report data stays in temporary memory.</p>
-          </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }
