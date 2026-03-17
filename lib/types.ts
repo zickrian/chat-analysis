@@ -35,12 +35,17 @@ export type UserStats = {
   conversationStarts: number;
   emojiUsage: number;
   morningPersonScore: number;
+  nightOwlScore: number;
   doubleTextCount: number;
   mediaSent: number;
   laughCount: number;
+  longestMonologue: number;
+  deadEnds: number;
   topWords: { label: string; value: number }[];
   topEmojis: { label: string; value: number }[];
   topDomains: { label: string; value: number }[];
+  initiatorScore: number;
+  closerScore: number;
 };
 
 export type ImportantMoment = {
@@ -56,8 +61,25 @@ export type AiInsights = {
   communicationStyle: string;
   overallTone: string;
   importantMomentsNarrative: string[];
-  sentimentTimeline: { period: string; sentiment: string }[];
+  sentimentTimeline: { period: string; sentiment: string; description: string }[];
   theFirstEncounter: string;
+  theVibe: string;
+  theErasTour: { era: string; description: string }[];
+};
+
+export type QuoteOfTheYear = {
+  timestamp: string;
+  sender: string;
+  message: string;
+  context: string;
+};
+
+export type TheGreatSilence = {
+  durationDays: number;
+  startDate: string;
+  endDate: string;
+  whoBrokeIt: string;
+  message: string;
 };
 
 export type AnalysisResult = {
@@ -85,6 +107,13 @@ export type AnalysisResult = {
     messagesPerHour: { label: string; value: number }[];
     activityHeatmap: { dayOfWeek: number; hour: number; value: number }[];
   };
+  firstMessage: {
+    timestamp: string;
+    sender: string;
+    message: string;
+  } | null;
+  quoteOfTheYear: QuoteOfTheYear | null;
+  theGreatSilence: TheGreatSilence | null;
   content: {
     topWords: { label: string; value: number }[];
     topEmojis: { label: string; value: number }[];
@@ -92,6 +121,7 @@ export type AnalysisResult = {
     mediaUsage: { label: string; value: number }[];
     topicDistribution: { label: string; value: number }[];
     topicKeywords: string[];
+    insideJokes: string[];
   };
   users: UserStats[];
   conversations: ConversationSession[];

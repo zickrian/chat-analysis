@@ -26,19 +26,19 @@ export function TopicExplorer({ report }: Props) {
   }, [report.messageSamples, keyword, topic, day]);
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 rounded-xl border border-neutral-200 bg-white p-4 md:grid-cols-3">
+    <div className="space-y-6 font-sans">
+      <div className="grid gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 md:grid-cols-3">
         <input
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
           placeholder="Search keyword"
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="rounded-xl border border-[var(--color-border-strong)] bg-transparent px-4 py-2 text-sm text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none transition-colors"
         />
 
         <select
           value={topic}
           onChange={(event) => setTopic(event.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="rounded-xl border border-[var(--color-border-strong)] bg-transparent px-4 py-2 text-sm text-[var(--color-text-main)] focus:border-[var(--color-accent)] focus:outline-none transition-colors"
         >
           <option value="all">All topics</option>
           {topics.map((item) => (
@@ -52,17 +52,20 @@ export function TopicExplorer({ report }: Props) {
           type="date"
           value={day}
           onChange={(event) => setDay(event.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className="rounded-xl border border-[var(--color-border-strong)] bg-transparent px-4 py-2 text-sm text-[var(--color-text-main)] focus:border-[var(--color-accent)] focus:outline-none transition-colors"
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {filtered.slice(0, 16).map((item, index) => (
-          <div key={`${item.timestamp}-${index}`} className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
-            <p className="text-xs text-neutral-500">{item.topic} - {item.sender} - {new Date(item.timestamp).toLocaleString()}</p>
-            <p className="text-sm text-neutral-800">{item.message}</p>
+          <div key={`${item.timestamp}-${index}`} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3">
+            <p className="text-xs uppercase tracking-widest text-[var(--color-text-soft)] font-mono mb-1">{item.topic} - {item.sender} - {new Date(item.timestamp).toLocaleDateString()}</p>
+            <p className="text-[var(--color-text-main)] font-medium leading-relaxed">{item.message}</p>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <div className="py-8 text-center text-sm font-medium text-[var(--color-text-muted)]">No messages found for your search.</div>
+        )}
       </div>
     </div>
   );

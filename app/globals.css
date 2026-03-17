@@ -1,65 +1,188 @@
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/400.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/500.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/600.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/700.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/300.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/600.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/700.css');
 @import "tailwindcss";
 
-@theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+@font-face {
+  font-family: "Mondwest";
+  src: url("/fonts/ppmondwest-regular.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
-  --font-sans: 'Geist Sans', sans-serif;
-  --font-heading: var(--font-mondwest);
+@font-face {
+  font-family: "Mondwest";
+  src: url("/fonts/ppmondwest-regular.otf") format("opentype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --color-bg-base: #f3f0e6;
+  --color-bg-muted: #ece6d8;
+  --color-bg-elevated: #faf7f0;
+
+  --color-surface: rgba(250, 247, 240, 0.92);
+  --color-surface-strong: #fffdf8;
+  --color-surface-soft: rgba(255, 252, 245, 0.78);
+
+  --color-text-main: #213228;
+  --color-text-soft: rgba(33, 50, 40, 0.72);
+  --color-text-muted: rgba(33, 50, 40, 0.5);
+
+  --color-accent: #4d6a37;
+  --color-accent-strong: #3d552c;
+  --color-accent-soft: rgba(77, 106, 55, 0.1);
+
+  --color-border: rgba(33, 50, 40, 0.1);
+  --color-border-strong: rgba(33, 50, 40, 0.18);
+
+  --font-sans: "Space Grotesk", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Mondwest", "Space Grotesk", serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", monospace;
+
+  --shadow-soft: 0 12px 30px rgba(28, 31, 29, 0.05);
+  --shadow-card: 0 18px 40px rgba(28, 31, 29, 0.08);
+  --radius-card: 28px;
+  --radius-pill: 999px;
 }
 
 :root {
-  --background: #F4F4F9;
-  --foreground: #100C1F;
-  
-  /* Vibrant yet clean color palette based on landing page vibe but lighter for dashboard readability */
-  --primary: #9B63F8; 
-  --primary-foreground: #FFFFFF;
-  --secondary: #48D76D; 
-  --secondary-foreground: #FFFFFF;
-  
-  --muted: #E8E6F3;
-  --muted-foreground: #6A6783;
-  --accent: #F6C138;
-  --accent-foreground: #100C1F;
-  
-  --border: #E8E6F3;
-  --input: #E8E6F3;
-  --ring: #9B63F8;
+  --color-bg-base: #f3f0e6;
+  --color-bg-muted: #ece6d8;
+  --color-bg-elevated: #faf7f0;
 
-  --radius: 1rem;
+  --color-surface: rgba(250, 247, 240, 0.92);
+  --color-surface-strong: #fffdf8;
+  --color-surface-soft: rgba(255, 252, 245, 0.78);
+
+  --color-text-main: #213228;
+  --color-text-soft: rgba(33, 50, 40, 0.72);
+  --color-text-muted: rgba(33, 50, 40, 0.5);
+
+  --color-accent: #4d6a37;
+  --color-accent-strong: #3d552c;
+  --color-accent-soft: rgba(77, 106, 55, 0.1);
+
+  --color-border: rgba(33, 50, 40, 0.1);
+  --color-border-strong: rgba(33, 50, 40, 0.18);
+  
+  --shadow-soft: 0 12px 30px rgba(28, 31, 29, 0.05);
+  --shadow-card: 0 18px 40px rgba(28, 31, 29, 0.08);
+  --radius-card: 28px;
+  --radius-pill: 999px;
+  --site-max: 1240px;
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
-  }
   body {
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
     font-family: var(--font-sans);
   }
   
-  h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: var(--font-heading);
-    letter-spacing: 0.02em;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: normal;
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .section-shell {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    padding: 5rem 0;
+    background: var(--color-bg-base);
+  }
+
+  .section-inner {
+    width: min(calc(100% - 2rem), var(--site-max));
+    margin: 0 auto;
+  }
+
+  .editorial-card {
+    background: var(--color-surface-strong);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .editorial-card-soft {
+    background: var(--color-surface-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .editorial-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    background: rgba(255, 252, 245, 0.82);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .button-primary,
+  .button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    min-height: 3rem;
+    padding: 0.85rem 1.35rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .button-primary {
+    background: var(--color-text-main);
+    color: var(--color-bg-base);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .button-primary:hover {
+    background: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .button-secondary {
+    border-color: var(--color-border-strong);
+    background: rgba(255, 252, 245, 0.62);
+    color: var(--color-text-main);
+  }
+
+  .button-secondary:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: var(--color-surface-strong);
+  }
+
+  .soft-grid-bg {
+    background-color: var(--color-bg-base);
+    background-image:
+      linear-gradient(rgba(33, 50, 40, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(33, 50, 40, 0.04) 1px, transparent 1px);
+    background-size: 34px 34px;
   }
 }

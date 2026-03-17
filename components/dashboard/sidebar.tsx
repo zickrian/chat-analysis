@@ -12,7 +12,6 @@ const MENU = [
   { key: "topics", label: "Topics" },
   { key: "insights", label: "AI Insights" },
   { key: "wrapped", label: "Wrapped Story" },
-  { key: "share", label: "Share Report" },
 ];
 
 type Props = {
@@ -23,11 +22,11 @@ export function DashboardSidebar({ reportId }: Props) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full rounded-2xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-6 lg:w-60 lg:self-start">
-      <p className="text-sm text-neutral-500">Chat Wrapped</p>
-      <h2 className="mt-1 text-lg">Navigation</h2>
+    <aside className="editorial-card w-full p-6 lg:sticky lg:top-6 lg:w-64 lg:self-start">
+      <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-text-soft)] font-mono">Chat Wrapped</p>
+      <h2 className="mt-2 text-3xl font-display text-[var(--color-text-main)]">Navigation</h2>
 
-      <nav className="mt-4 space-y-1">
+      <nav className="mt-6 space-y-2 font-sans">
         {MENU.map((item) => {
           const href = `/dashboard/${reportId}/${item.key}`;
           const isActive = pathname === href;
@@ -36,8 +35,10 @@ export function DashboardSidebar({ reportId }: Props) {
               key={item.key}
               href={href}
               className={clsx(
-                "block rounded-lg px-3 py-2 text-sm transition",
-                isActive ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100",
+                "block rounded-xl px-4 py-3 text-sm transition-all font-medium",
+                isActive 
+                  ? "bg-[var(--color-text-main)] text-[var(--color-bg-base)] shadow-md translate-x-1" 
+                  : "text-[var(--color-text-soft)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-accent)] hover:translate-x-1"
               )}
             >
               {item.label}

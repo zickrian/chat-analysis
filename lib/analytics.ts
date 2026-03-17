@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { NEGATIVE_WORDS, POSITIVE_WORDS, STOPWORDS, TOPIC_KEYWORDS } from "@/lib/constants";
-import { AnalysisResult, ConversationSession, ParsedMessage, UserStats } from "@/lib/types";
+import { AnalysisResult, ConversationSession, ParsedMessage, UserStats, TheGreatSilence, QuoteOfTheYear } from "@/lib/types";
 import { average, formatSeconds, hourLabel, topEntries, toIsoDay } from "@/lib/utils";
 
 function getWordList(message: string) {
@@ -134,28 +134,95 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
   const userEmojis = new Map<string, Map<string, number>>();
   const userDomains = new Map<string, Map<string, number>>();
   const userMorningScore = new Map<string, number>();
+  const userNightOwlScore = new Map<string, number>();
   const userDoubleText = new Map<string, number>();
   const userMediaSent = new Map<string, number>();
   const userLaughCount = new Map<string, number>();
+  const userLongestMonologue = new Map<string, number>();
+  const userDeadEnds = new Map<string, number>();
+  const userInitiatorScore = new Map<string, number>();
+  const userCloserScore = new Map<string, number>();
 
   participants.forEach(p => {
     userWords.set(p, new Map());
     userEmojis.set(p, new Map());
     userDomains.set(p, new Map());
     userMorningScore.set(p, 0);
+    userNightOwlScore.set(p, 0);
     userDoubleText.set(p, 0);
     userMediaSent.set(p, 0);
     userLaughCount.set(p, 0);
+    userLongestMonologue.set(p, 0);
+    userDeadEnds.set(p, 0);
+    userInitiatorScore.set(p, 0);
+    userCloserScore.set(p, 0);
   });
 
   const laughRegex = /\b(wkwk|haha|hehe|lol|lmao)\b/gi;
 
   let previousSender: string | null = null;
+  let currentMonologueCount = 0;
   const uniqueDays = new Set<string>();
 
-  for (const message of messages) {
+  const firstMessage = messages.length > 0 ? {
+    timestamp: messages[0].timestamp,
+    sender: messages[0].sender,
+    message: messages[0].message
+  } : null;
+
+  let theGreatSilence: TheGreatSilence | null = null;
+  let quoteCandidate: ParsedMessage | null = null;
+  let maxSilenceMs = 0;
+
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i];
     const sender = message.sender;
     perUser.set(sender, (perUser.get(sender) ?? 0) + 1);
+
+    if (previousSender === sender) {
+      userDoubleText.set(sender, (userDoubleText.get(sender) ?? 0) + 1);
+      currentMonologueCount++;
+      const currentMax = userLongestMonologue.get(sender) ?? 0;
+      if (currentMonologueCount > currentMax) {
+        userLongestMonologue.set(sender, currentMonologueCount);
+      }
+    } else {
+      currentMonologueCount = 1;
+    }
+    
+    // Check dead end / great silence / initiator / closer
+    if (i > 0) {
+      const prevMessage = messages[i - 1];
+      const diffMs = new Date(message.timestamp).getTime() - new Date(prevMessage.timestamp).getTime();
+      
+      if (diffMs > maxSilenceMs) {
+        maxSilenceMs = diffMs;
+        theGreatSilence = {
+          durationDays: Math.floor(diffMs / (1000 * 60 * 60 * 24)),
+          startDate: prevMessage.timestamp,
+          endDate: message.timestamp,
+          whoBrokeIt: message.sender,
+          message: message.message
+        };
+      }
+
+      // Initiator: starts convo after 8 hours of silence
+      if (diffMs > 8 * 60 * 60 * 1000) {
+        userInitiatorScore.set(message.sender, (userInitiatorScore.get(message.sender) ?? 0) + 1);
+        userCloserScore.set(prevMessage.sender, (userCloserScore.get(prevMessage.sender) ?? 0) + 1);
+      }
+    }
+
+    if (i < messages.length - 1) {
+      const nextMessage = messages[i + 1];
+      const diffMs = new Date(nextMessage.timestamp).getTime() - new Date(message.timestamp).getTime();
+      if (diffMs > 24 * 60 * 60 * 1000 && nextMessage.sender !== sender) {
+        userDeadEnds.set(sender, (userDeadEnds.get(sender) ?? 0) + 1);
+      }
+    } else {
+      userDeadEnds.set(sender, (userDeadEnds.get(sender) ?? 0) + 1);
+      userCloserScore.set(sender, (userCloserScore.get(sender) ?? 0) + 1); // Last person to ever send a message is also a closer
+    }
 
     const date = new Date(message.timestamp);
     const dayLabel = toIsoDay(date);
@@ -172,6 +239,8 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
 
     if (hour >= 5 && hour < 9) {
       userMorningScore.set(sender, (userMorningScore.get(sender) ?? 0) + 1);
+    } else if (hour >= 0 && hour < 4) {
+      userNightOwlScore.set(sender, (userNightOwlScore.get(sender) ?? 0) + 1);
     }
 
     if (previousSender === sender) {
@@ -180,10 +249,18 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     previousSender = sender;
 
     const words = getWordList(message.message);
-    const uWordsMap = userWords.get(sender)!;
     for (const word of words) {
       wordCounter.set(word, (wordCounter.get(word) ?? 0) + 1);
-      uWordsMap.set(word, (uWordsMap.get(word) ?? 0) + 1);
+      userWords.get(sender)!.set(word, (userWords.get(sender)!.get(word) ?? 0) + 1);
+    }
+
+    // Quote candidate logic (find a long interesting message)
+    if (words.length > 15 && words.length < 50 && !message.message.includes("http")) {
+      if (!quoteCandidate || words.length > getWordList(quoteCandidate.message).length) {
+        if (Math.random() > 0.3) { // some randomness
+          quoteCandidate = message;
+        }
+      }
     }
 
     const laughs = message.message.match(laughRegex);
@@ -192,17 +269,15 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     }
 
     const emojis = message.message.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu) ?? [];
-    const uEmojisMap = userEmojis.get(sender)!;
     for (const emoji of emojis) {
       emojiCounter.set(emoji, (emojiCounter.get(emoji) ?? 0) + 1);
-      uEmojisMap.set(emoji, (uEmojisMap.get(emoji) ?? 0) + 1);
+      userEmojis.get(sender)!.set(emoji, (userEmojis.get(sender)!.get(emoji) ?? 0) + 1);
     }
 
     const domains = extractDomains(message.message);
-    const uDomainsMap = userDomains.get(sender)!;
     for (const domain of domains) {
       linkCounter.set(domain, (linkCounter.get(domain) ?? 0) + 1);
-      uDomainsMap.set(domain, (uDomainsMap.get(domain) ?? 0) + 1);
+      userDomains.get(sender)!.set(domain, (userDomains.get(sender)!.get(domain) ?? 0) + 1);
     }
 
     if (message.messageType === "media") {
@@ -225,7 +300,6 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
   }
 
   const longestStreakDays = computeLongestStreak(Array.from(uniqueDays));
-
   const replies = messages.map((item) => item.replyTimeSec).filter((item): item is number => item !== null);
 
   const mostActiveDay = topEntries(Array.from(perDay.entries()), 1)[0]?.[0] ?? "-";
@@ -257,16 +331,27 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       conversationStarts: conversationStarts.get(user) ?? 0,
       emojiUsage: userMessages.reduce((sum, item) => sum + item.emojiCount, 0),
       morningPersonScore: userMorningScore.get(user) ?? 0,
+      nightOwlScore: userNightOwlScore.get(user) ?? 0,
       doubleTextCount: userDoubleText.get(user) ?? 0,
       mediaSent: userMediaSent.get(user) ?? 0,
       laughCount: userLaughCount.get(user) ?? 0,
+      longestMonologue: userLongestMonologue.get(user) ?? 0,
+      deadEnds: userDeadEnds.get(user) ?? 0,
       topWords: topMapEntries(userWords.get(user)!, 5),
       topEmojis: topMapEntries(userEmojis.get(user)!, 5),
       topDomains: topMapEntries(userDomains.get(user)!, 5),
+      initiatorScore: userInitiatorScore.get(user) ?? 0,
+      closerScore: userCloserScore.get(user) ?? 0,
     };
   });
 
   const { topics, topicKeywords } = inferTopics(messages);
+
+  const insideJokes = Array.from(wordCounter.entries())
+    .filter(([word, count]) => count > 5 && count < 30 && word.length > 5)
+    .sort(() => Math.random() - 0.5)
+    .map(([word]) => word)
+    .slice(0, 3);
 
   const messageSamples = messages
     .slice(0, 400)
@@ -313,6 +398,13 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     return "Neutral and practical";
   })();
 
+  const quoteOfTheYear: QuoteOfTheYear | null = quoteCandidate ? {
+    timestamp: quoteCandidate.timestamp,
+    sender: quoteCandidate.sender,
+    message: quoteCandidate.message,
+    context: "A standout message that defines your communication style."
+  } : null;
+
   return {
     meta: {
       fileName,
@@ -334,10 +426,13 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     },
     activity: {
       messagesPerUser: topMapEntries(perUser, 8),
-      messagesPerDay: topMapEntries(perDay, 30),
+      messagesPerDay: topMapEntries(perDay, 365), // Expand to 365 for a full year if possible
       messagesPerHour: topMapEntries(perHour, 24),
       activityHeatmap,
     },
+    firstMessage,
+    quoteOfTheYear,
+    theGreatSilence: theGreatSilence && theGreatSilence.durationDays > 1 ? theGreatSilence : null,
     content: {
       topWords: topMapEntries(wordCounter, 20),
       topEmojis: topMapEntries(emojiCounter, 12),
@@ -345,6 +440,7 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       mediaUsage: topMapEntries(mediaCounter, 6),
       topicDistribution: topics,
       topicKeywords,
+      insideJokes
     },
     users,
     conversations,
@@ -357,10 +453,15 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       overallTone: tone,
       importantMomentsNarrative: importantMoments.slice(0, 4).map((item) => `${dayjs(item.timestamp).format("DD MMM HH:mm")} - ${item.sender}: ${item.message}`),
       sentimentTimeline: [
-        { period: "Early Phase", sentiment: "Neutral and exploring" },
-        { period: "Mid Phase", sentiment: tone },
+        { period: "The Beginning", sentiment: "Neutral", description: "Getting comfortable and establishing the baseline." },
+        { period: "The Middle", sentiment: tone, description: "A steady rhythm of conversation." },
       ],
       theFirstEncounter: "The conversation started casually, gradually evolving into a more consistent pattern of communication.",
+      theVibe: "A dynamic mix of inside jokes, random links, and deep talks late at night.",
+      theErasTour: [
+        { era: "The Honeymoon Phase", description: "High frequency, mostly short messages and lots of emojis." },
+        { era: "The Deep Talk Era", description: "Messages got longer and responses took a bit more time, focusing on quality over quantity." }
+      ]
     },
     importantMoments,
     wrapped: {

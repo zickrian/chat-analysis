@@ -2,71 +2,9 @@ import Link from "next/link";
 import { UploadForm } from "@/components/upload/upload-form";
 import { MoveLeft } from "lucide-react";
 
-const styles = `
-  :root {
-    --color-bg-base: #f3f0e6;
-    --color-bg-muted: #ece6d8;
-    --color-surface-strong: #fffdf8;
-    --color-surface-soft: rgba(255, 252, 245, 0.78);
-    --color-text-main: #213228;
-    --color-text-soft: rgba(33, 50, 40, 0.72);
-    --color-accent: #4d6a37;
-    --color-accent-soft: rgba(77, 106, 55, 0.1);
-    --color-border: rgba(33, 50, 40, 0.1);
-    --color-border-strong: rgba(33, 50, 40, 0.18);
-    --font-display: var(--font-mondwest), serif;
-    --font-sans: var(--font-space), sans-serif;
-  }
-
-  body {
-    background-color: var(--color-bg-base);
-    color: var(--color-text-main);
-    font-family: var(--font-sans);
-  }
-
-  .font-display {
-    font-family: var(--font-display);
-    font-weight: normal;
-  }
-
-  .font-sans {
-    font-family: var(--font-sans);
-  }
-
-  .soft-grid-bg {
-    background-color: var(--color-bg-base);
-    background-image:
-      linear-gradient(rgba(33, 50, 40, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(33, 50, 40, 0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-
-  .editorial-card {
-    background: var(--color-surface-strong);
-    border: 1px solid var(--color-border);
-    border-radius: 24px;
-    box-shadow: 0 18px 40px rgba(28, 31, 29, 0.04);
-  }
-
-  .editorial-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    border: 1px solid var(--color-border);
-    background: rgba(255, 252, 245, 0.82);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-`;
-
 export default function UploadPage() {
   return (
     <>
-      <style>{styles}</style>
       <div className="soft-grid-bg min-h-screen relative overflow-hidden selection:bg-[var(--color-accent)] selection:text-[var(--color-surface-strong)] flex flex-col">
         
         {/* Minimal Header */}

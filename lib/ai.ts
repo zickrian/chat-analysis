@@ -22,7 +22,7 @@ async function askCerebras(prompt: string) {
   const apiKey = process.env.CEREBRAS_API_KEY;
   if (!apiKey) return null;
 
-  const model = process.env.CEREBRAS_MODEL ?? "llama3.1-8b";
+  const model = process.env.CEREBRAS_MODEL ?? "llama3.3-70b";
   const res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -32,11 +32,12 @@ async function askCerebras(prompt: string) {
     body: JSON.stringify({
       model,
       temperature: 0.2,
+      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
           content:
-            "You are an analyst for private messaging conversations. Respond with concise JSON only when asked.",
+            "You are an expert conversational analyst acting as a magazine editor. Provide insights in JSON. ALWAYS respond in Indonesian language (Bahasa Indonesia).",
         },
         {
           role: "user",
@@ -74,7 +75,7 @@ export async function enrichWithAi(messages: ParsedMessage[], base: AnalysisResu
 
   for (const chunk of chunks.slice(0, 10)) {
     const compact = chunk.map((m) => `${m.timestamp} | ${m.sender}: ${m.message.slice(0, 200)}`).join("\n");
-    const prompt = `Summarize this chat chunk in 5 bullets: main topics, interaction style, emotional tone, notable events, and decisions.\n\n${compact}`;
+    const prompt = `Summarize this chat chunk in 5 bullets (in Indonesian): main topics, interaction style, emotional tone, notable events, and decisions.\n\n${compact}`;
     const summary = await askCerebras(prompt);
     if (summary) chunkSummaries.push(summary);
   }
@@ -83,14 +84,16 @@ export async function enrichWithAi(messages: ParsedMessage[], base: AnalysisResu
     return base;
   }
 
-  const finalPrompt = `Analyze these chunk summaries and output strict JSON with keys:
-conversationSummary (string),
-relationshipDynamic (string),
-communicationStyle (string),
-overallTone (string),
-importantMomentsNarrative (array of strings max 5),
-sentimentTimeline (array of objects with 'period' and 'sentiment' keys, max 4 items representing phases of chat),
-theFirstEncounter (string, narrative of how they first started based on first chunk).
+  const finalPrompt = `Analyze these chunk summaries and output strict JSON with keys (ALL VALUES MUST BE IN INDONESIAN / BAHASA INDONESIA):
+conversationSummary (string, ringkasan percakapan),
+relationshipDynamic (string, dinamika hubungan),
+communicationStyle (string, gaya komunikasi),
+overallTone (string, nada emosional secara keseluruhan),
+importantMomentsNarrative (array of strings max 5, momen penting),
+sentimentTimeline (array of objects with 'period', 'sentiment', and 'description' keys, max 4 items representing phases of chat. Gunakan bahasa Indonesia untuk semua value),
+theFirstEncounter (string, narrative of how they first started based on first chunk, bahasa indonesia),
+theVibe (string, a single sentence describing the overall relationship persona or aesthetic, e.g. "Sahabat kacau yang berkomunikasi sepenuhnya melalui sarkasme dan keluh kesah larut malam."),
+theErasTour (array of objects with 'era' and 'description' keys, max 3 items representing distinct chapters of their relationship based on the chat. Gunakan bahasa Indonesia).
 
 Summaries:
 ${chunkSummaries.map((item, idx) => `Chunk ${idx + 1}: ${item}`).join("\n\n")}`;
@@ -101,8 +104,10 @@ ${chunkSummaries.map((item, idx) => `Chunk ${idx + 1}: ${item}`).join("\n\n")}`;
     communicationStyle: string;
     overallTone: string;
     importantMomentsNarrative: string[];
-    sentimentTimeline?: { period: string; sentiment: string }[];
+    sentimentTimeline?: { period: string; sentiment: string; description: string }[];
     theFirstEncounter?: string;
+    theVibe?: string;
+    theErasTour?: { era: string; description: string }[];
   };
 
   const final = safeJsonParse<AiPayload>(await askCerebras(finalPrompt));
@@ -122,6 +127,8 @@ ${chunkSummaries.map((item, idx) => `Chunk ${idx + 1}: ${item}`).join("\n\n")}`;
         : base.ai.importantMomentsNarrative,
       sentimentTimeline: final.sentimentTimeline?.length ? final.sentimentTimeline : base.ai.sentimentTimeline,
       theFirstEncounter: final.theFirstEncounter || base.ai.theFirstEncounter,
+      theVibe: final.theVibe || base.ai.theVibe,
+      theErasTour: final.theErasTour?.length ? final.theErasTour : base.ai.theErasTour,
     },
   };
 }

@@ -11,14 +11,14 @@ type Props = {
 
 export function DashboardLayoutShell({ reportId, report, children }: Props) {
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white">
+    <div className="soft-grid-bg min-h-screen text-[var(--color-text-main)]">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface-strong)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Private analysis</p>
-            <h1 className="text-xl">{report.meta.fileName}</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-text-soft)] font-mono">Private analysis</p>
+            <h1 className="text-2xl font-display mt-1">{report.meta.fileName}</h1>
           </div>
-          <Link href="/upload" className="rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
+          <Link href="/upload" className="button-secondary text-xs !min-h-0 !py-2 !px-4">
             Analyze another file
           </Link>
         </div>

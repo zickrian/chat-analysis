@@ -6,5 +6,5 @@ type CardProps = PropsWithChildren<{
 }>;
 
 export function Card({ className, children }: CardProps) {
-  return <section className={clsx("rounded-2xl border border-neutral-200 bg-white p-5", className)}>{children}</section>;
+  return <section className={clsx("editorial-card p-5", className)}>{children}</section>;
 }
