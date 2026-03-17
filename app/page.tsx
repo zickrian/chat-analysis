@@ -181,9 +181,9 @@ export default function Home() {
               {/* Decorative soft glow behind arch */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[var(--color-accent)] opacity-5 blur-[80px] rounded-full pointer-events-none" />
               
-              <div className="arch-window w-full max-w-[460px] aspect-[4/5] relative transform md:rotate-2 hover:rotate-0 transition-all duration-700 ease-out group">
+              <div className="arch-window w-full max-w-[460px] aspect-[4/5] relative transform md:rotate-2 transition-all duration-700 ease-out">
                 <video
-                  className="absolute inset-0 w-full h-[110%] object-cover object-[center_60%] mix-blend-screen opacity-85 transition-transform duration-1000 group-hover:scale-105"
+                  className="absolute inset-0 w-full h-[110%] object-cover object-[center_60%] mix-blend-screen opacity-85"
                   autoPlay
                   loop
                   muted
