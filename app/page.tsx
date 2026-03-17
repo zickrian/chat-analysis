@@ -56,7 +56,7 @@ export default function Home() {
               {/* Decorative soft glow behind arch */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[var(--color-accent)] opacity-5 blur-[80px] rounded-full pointer-events-none" />
               
-              <div className="arch-window w-full max-w-[460px] aspect-[4/5] relative transform md:rotate-2 transition-all duration-700 ease-out">
+              <div className="arch-window w-full max-w-[460px] aspect-[4/5] relative md:rotate-2">
                 <video
                   className="absolute inset-0 w-full h-[110%] object-cover object-[center_60%] mix-blend-screen opacity-85"
                   autoPlay
@@ -70,10 +70,8 @@ export default function Home() {
                     type="video/mp4"
                   />
                 </video>
-                
                 {/* Overlay gradient inside arch for depth */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#111a14] via-[#111a14]/20 to-transparent opacity-90" />
-                
                 {/* Subtle text inside the arch */}
                 <div className="absolute bottom-10 left-10 right-10 text-[#f3f0e6] font-sans">
                    <div className="text-xs tracking-[0.2em] font-bold uppercase mb-3 opacity-70 text-[var(--color-accent)] flex items-center gap-2">

@@ -1,10 +1,10 @@
 @import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/300.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/300.css');
 @import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/400.css');
 @import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/500.css');
 @import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/600.css');
 @import url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.1/700.css');
 @import "tailwindcss";
-
 @font-face {
   font-family: "Mondwest";
   src: url("/fonts/ppmondwest-regular.otf") format("opentype");
@@ -184,5 +184,23 @@
       linear-gradient(rgba(33, 50, 40, 0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(33, 50, 40, 0.04) 1px, transparent 1px);
     background-size: 34px 34px;
+  }
+
+  .arch-window {
+    border-radius: 240px 240px 16px 16px;
+    overflow: hidden;
+    position: relative;
+    background: #111a14;
+    box-shadow: 0 24px 60px rgba(33, 50, 40, 0.15);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .arch-window::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+    pointer-events: none;
   }
 }
