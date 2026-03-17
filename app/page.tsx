@@ -132,18 +132,7 @@ export default function Home() {
       <style>{styles}</style>
       <div className="soft-grid-bg min-h-screen relative overflow-hidden selection:bg-[var(--color-accent)] selection:text-[var(--color-surface-strong)]">
         
-        {/* Minimal Header */}
-        <header className="absolute top-0 left-0 w-full p-6 lg:px-12 z-50 flex justify-between items-center">
-          <div className="font-display text-2xl tracking-wide text-[var(--color-text-main)]">
-            Chat Wrapped
-          </div>
-          <div className="hidden md:flex gap-8 text-sm font-sans font-medium uppercase tracking-widest text-[var(--color-text-soft)]">
-            <a href="#features" className="hover:text-[var(--color-accent)] transition-colors">Index</a>
-            <a href="#privacy" className="hover:text-[var(--color-accent)] transition-colors">Manifesto</a>
-          </div>
-        </header>
-
-        <main className="max-w-[1400px] mx-auto px-6 lg:px-12 pt-32 lg:pt-40 pb-24 min-h-[90vh] flex items-center">
+        <main className="max-w-[1400px] mx-auto px-6 lg:px-12 pt-16 lg:pt-24 pb-24 min-h-[90vh] flex items-center">
           <div className="grid lg:grid-cols-12 gap-16 lg:gap-8 items-center w-full">
             
             {/* Left Col: Content */}
