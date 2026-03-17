@@ -10,7 +10,7 @@ type PageProps = {
   }>;
 };
 
-const ALLOWED = new Set(["overview", "activity", "users", "content", "topics", "insights", "wrapped", "share"]);
+const ALLOWED = new Set(["overview", "activity", "users", "content", "topics", "insights", "wrapped", "ai", "share"]);
 
 export default async function DashboardSectionPage({ params }: PageProps) {
   const { id, section } = await params;
@@ -20,5 +20,5 @@ export default async function DashboardSectionPage({ params }: PageProps) {
 
   const report = readReportOr404(id);
 
-  return <DashboardLayoutShell reportId={id} report={report}>{renderSection(section, report)}</DashboardLayoutShell>;
+  return <DashboardLayoutShell reportId={id} report={report}>{renderSection(section, report, id)}</DashboardLayoutShell>;
 }

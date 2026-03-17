@@ -10,7 +10,6 @@ const MENU = [
   { key: "users", label: "Users" },
   { key: "content", label: "Content" },
   { key: "topics", label: "Topics" },
-  { key: "insights", label: "AI Insights" },
   { key: "wrapped", label: "Wrapped Story" },
 ];
 

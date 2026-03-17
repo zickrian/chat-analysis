@@ -51,11 +51,23 @@ export async function extractChatText(file: File) {
   if (file.name.endsWith(".zip")) {
     const zipBuffer = await file.arrayBuffer();
     const zip = await JSZip.loadAsync(zipBuffer);
-    const txtFile = Object.values(zip.files).find((entry) => {
+    
+    let txtFile: JSZip.JSZipObject | null = null;
+    
+    // Iterasi safely tanpa Object.values untuk menghindari stack overflow
+    for (const fileName in zip.files) {
+      if (!Object.prototype.hasOwnProperty.call(zip.files, fileName)) continue;
+      
+      const entry = zip.files[fileName];
       const isTxt = entry.name.toLowerCase().endsWith(".txt");
       const isMacOsx = entry.name.includes("__MACOSX") || entry.name.split("/").pop()?.startsWith("._");
-      return isTxt && !isMacOsx;
-    });
+      
+      if (isTxt && !isMacOsx) {
+        txtFile = entry;
+        break;
+      }
+    }
+    
     if (!txtFile) {
       throw new Error("ZIP tidak berisi file .txt chat export.");
     }

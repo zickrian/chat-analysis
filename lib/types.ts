@@ -55,6 +55,28 @@ export type ImportantMoment = {
   message: string;
 };
 
+export type TopicPhase = {
+  phase: string;
+  startDate: string;
+  endDate: string;
+  topics: { label: string; value: number }[];
+};
+
+export type ConflictMoment = {
+  period: string;
+  score: number;
+  reason: string;
+};
+
+export type ChatIndexEntry = {
+  id: string;
+  timestamp: string;
+  sender: string;
+  conversationId: string;
+  message: string;
+  searchText: string;
+};
+
 export type AiInsights = {
   conversationSummary: string;
   relationshipDynamic: string;
@@ -92,6 +114,7 @@ export type AnalysisResult = {
     totalMessages: number;
     totalConversations: number;
     averageReplyTimeSec: number;
+    medianReplyTimeSec: number;
     fastestReplySec: number;
     slowestReplySec: number;
     mostActiveUser: string;
@@ -105,6 +128,7 @@ export type AnalysisResult = {
     messagesPerUser: { label: string; value: number }[];
     messagesPerDay: { label: string; value: number }[];
     messagesPerHour: { label: string; value: number }[];
+    responseTimeByHour: { label: string; value: number }[];
     activityHeatmap: { dayOfWeek: number; hour: number; value: number }[];
   };
   firstMessage: {
@@ -121,7 +145,13 @@ export type AnalysisResult = {
     mediaUsage: { label: string; value: number }[];
     topicDistribution: { label: string; value: number }[];
     topicKeywords: string[];
+    topicEvolution: TopicPhase[];
     insideJokes: string[];
+  };
+  conflictMoments: ConflictMoment[];
+  chatIndex: {
+    totalMessages: number;
+    entries: ChatIndexEntry[];
   };
   users: UserStats[];
   conversations: ConversationSession[];

@@ -93,7 +93,7 @@ function OverviewSection({ report }: { report: AnalysisResult }) {
         <Card>
           <p className="text-sm font-medium text-[var(--color-text-soft)] mb-1">Longest Conversation</p>
           <p className="text-3xl font-display text-[var(--color-text-main)]">{report.totals.longestConversation} messages</p>
-          <p className="text-sm mt-3 text-[var(--color-text-muted)] font-medium">The deepest rabbit hole you've gone down in one sitting.</p>
+          <p className="text-sm mt-3 text-[var(--color-text-muted)] font-medium">The deepest rabbit hole you&apos;ve gone down in one sitting.</p>
         </Card>
       </div>
     </div>
@@ -111,6 +111,10 @@ function ActivitySection({ report }: { report: AnalysisResult }) {
         <h3 className="font-display text-2xl text-[var(--color-text-main)] mb-4">Messages per Hour</h3>
         <BarChart data={report.activity.messagesPerHour} />
       </Card>
+      <Card>
+        <h3 className="font-display text-2xl text-[var(--color-text-main)] mb-4">Response Time by Hour</h3>
+        <LineChart data={report.activity.responseTimeByHour} />
+      </Card>
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <p className="text-sm font-medium text-[var(--color-text-soft)]">Most Active Day</p>
@@ -119,6 +123,14 @@ function ActivitySection({ report }: { report: AnalysisResult }) {
         <Card>
           <p className="text-sm font-medium text-[var(--color-text-soft)]">Most Active Hour</p>
           <p className="mt-2 text-xl font-medium text-[var(--color-text-main)]">{report.wrapped.peakHourLabel}</p>
+        </Card>
+        <Card>
+          <p className="text-sm font-medium text-[var(--color-text-soft)]">Median Reply Time</p>
+          <p className="mt-2 text-xl font-medium text-[var(--color-text-main)]">{formatSeconds(report.totals.medianReplyTimeSec)}</p>
+        </Card>
+        <Card>
+          <p className="text-sm font-medium text-[var(--color-text-soft)]">Fastest Reply</p>
+          <p className="mt-2 text-xl font-medium text-[var(--color-text-main)]">{formatSeconds(report.totals.fastestReplySec)}</p>
         </Card>
       </div>
     </div>
@@ -277,7 +289,7 @@ function ContentSection({ report }: { report: AnalysisResult }) {
 }
 
 function TopicsSection({ report }: { report: AnalysisResult }) {
-  const availableTopics = Array.from(new Set(report.messageSamples.map((item) => item.topic))).slice(0, 8);
+  const availableTopics = report.content.topicDistribution.map((item) => item.label).slice(0, 10);
   return (
     <div className="space-y-5 font-sans">
       <Card>
@@ -299,6 +311,28 @@ function TopicsSection({ report }: { report: AnalysisResult }) {
             <div key={`${item.timestamp}-${index}`} className="rounded-xl bg-[var(--color-bg-base)] border border-[var(--color-border)] px-4 py-3 font-medium">
               <p className="text-xs text-[var(--color-text-soft)] font-mono uppercase tracking-widest mb-1">{item.topic} - {item.sender}</p>
               <p className="line-clamp-2 leading-relaxed">{item.message}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <h3 className="font-display text-2xl text-[var(--color-text-main)]">Topic Evolution</h3>
+        <p className="mt-2 text-sm text-[var(--color-text-soft)] font-medium">Perubahan topik dari awal sampai terbaru.</p>
+        <div className="mt-6 space-y-4">
+          {report.content.topicEvolution.map((phase) => (
+            <div key={`${phase.phase}-${phase.startDate}`} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] p-4">
+              <p className="text-xs uppercase tracking-widest text-[var(--color-text-soft)] font-bold">{phase.phase}</p>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                {new Date(phase.startDate).toLocaleDateString()} - {new Date(phase.endDate).toLocaleDateString()}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {phase.topics.map((topic) => (
+                  <span key={`${phase.phase}-${topic.label}`} className="editorial-pill">
+                    {topic.label} ({topic.value})
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -328,7 +362,7 @@ function InsightsSection({ report }: { report: AnalysisResult }) {
         <Card className="bg-[var(--color-surface-soft)] border-none">
           <h3 className="font-display text-3xl text-[var(--color-text-main)] mb-4">The Vibe</h3>
           <p className="text-lg text-[var(--color-text-main)] font-medium leading-relaxed italic">
-            "{report.ai.theVibe}"
+            &quot;{report.ai.theVibe}&quot;
           </p>
           <div className="mt-6 pt-6 border-t border-[var(--color-border-strong)]">
             <h4 className="text-xs uppercase tracking-widest text-[var(--color-text-soft)] font-bold mb-3">Overall Tone</h4>
@@ -348,7 +382,7 @@ function InsightsSection({ report }: { report: AnalysisResult }) {
                 <span className="font-bold">{firstMsg.sender}</span> started it all with:
               </p>
               <div className="mt-3 p-4 bg-[var(--color-bg-base)] rounded-xl border border-[var(--color-border)] italic text-[var(--color-text-main)]">
-                "{firstMsg.message}"
+                &quot;{firstMsg.message}&quot;
               </div>
             </div>
           ) : null}
@@ -374,7 +408,7 @@ function InsightsSection({ report }: { report: AnalysisResult }) {
             <div className="flex-1 p-5 bg-[var(--color-bg-base)] rounded-xl border border-[var(--color-border)]">
               <p className="text-xs uppercase tracking-widest text-[var(--color-text-soft)] font-bold mb-2">The Icebreaker</p>
               <p className="text-sm font-medium mb-1"><span className="font-bold">{report.theGreatSilence.whoBrokeIt}</span> broke the silence with:</p>
-              <p className="text-sm italic text-[var(--color-text-muted)]">"{report.theGreatSilence.message}"</p>
+              <p className="text-sm italic text-[var(--color-text-muted)]">&quot;{report.theGreatSilence.message}&quot;</p>
             </div>
           </div>
         </Card>
@@ -406,7 +440,7 @@ function InsightsSection({ report }: { report: AnalysisResult }) {
             <div className="flex flex-col gap-3">
               {report.content.insideJokes.map((joke, i) => (
                 <div key={i} className="px-4 py-3 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-border)] flex items-center justify-between">
-                  <span className="font-display text-xl text-[var(--color-text-main)]">"{joke}"</span>
+                  <span className="font-display text-xl text-[var(--color-text-main)]">&quot;{joke}&quot;</span>
                   <span className="text-xs text-[var(--color-text-soft)] uppercase tracking-widest">Exclusive</span>
                 </div>
               ))}
@@ -419,6 +453,23 @@ function InsightsSection({ report }: { report: AnalysisResult }) {
           )}
         </Card>
       </div>
+
+      <Card>
+        <h3 className="font-display text-2xl text-[var(--color-text-main)] mb-4">Conflict Radar</h3>
+        {report.conflictMoments.length > 0 ? (
+          <div className="space-y-3">
+            {report.conflictMoments.map((moment) => (
+              <div key={moment.period} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] px-4 py-3">
+                <p className="text-xs uppercase tracking-widest text-[var(--color-text-soft)] font-bold">{moment.period}</p>
+                <p className="text-sm font-medium text-[var(--color-text-main)] mt-1">Tension score: {moment.score}</p>
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">{moment.reason}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--color-text-muted)] font-medium">Tidak terdeteksi periode konflik menonjol dari pola pesan.</p>
+        )}
+      </Card>
 
       <Card>
         <h3 className="font-display text-2xl text-[var(--color-text-main)] mb-8">The Eras Tour</h3>
@@ -469,7 +520,7 @@ function WrappedSection({ report }: { report: AnalysisResult }) {
   );
 }
 
-export function renderSection(section: string, report: AnalysisResult) {
+export function renderSection(section: string, report: AnalysisResult, reportId: string) {
   if (section === "overview") return <OverviewSection report={report} />;
   if (section === "activity") return <ActivitySection report={report} />;
   if (section === "users") return <UsersSection report={report} />;

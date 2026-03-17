@@ -4,6 +4,8 @@ import { enrichWithAi } from "@/lib/ai";
 import { extractChatText, parseWhatsappText } from "@/lib/parser";
 import { saveAnalysis } from "@/lib/storage";
 
+export const maxDuration = 300;
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ reportId });
   } catch (error) {
+    console.error("[/api/analyze] Error:", error);
     const message = error instanceof Error ? error.message : "Terjadi error saat analisis";
     return NextResponse.json({ error: message }, { status: 500 });
   }

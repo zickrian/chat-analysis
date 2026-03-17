@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { NEGATIVE_WORDS, POSITIVE_WORDS, STOPWORDS, TOPIC_KEYWORDS } from "@/lib/constants";
-import { AnalysisResult, ConversationSession, ParsedMessage, UserStats, TheGreatSilence, QuoteOfTheYear } from "@/lib/types";
+import { AnalysisResult, ChatIndexEntry, ConversationSession, ParsedMessage, UserStats, TheGreatSilence, QuoteOfTheYear } from "@/lib/types";
 import { average, formatSeconds, hourLabel, topEntries, toIsoDay } from "@/lib/utils";
 
 function getWordList(message: string) {
@@ -24,21 +24,152 @@ function computeSentiment(messages: ParsedMessage[]): ConversationSession["senti
   return "neutral";
 }
 
-function inferTopics(messages: ParsedMessage[]) {
+function countTopics(messages: ParsedMessage[]) {
   const topicCounter = new Map<string, number>();
-  const text = messages.map((msg) => msg.message.toLowerCase()).join(" ");
+  const keywordCounter = new Map<string, number>();
+  const fallbackWordCounter = new Map<string, number>();
 
-  for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
-    const score = keywords.reduce((sum, keyword) => sum + (text.includes(keyword) ? 1 : 0), 0);
-    if (score > 0) {
-      topicCounter.set(topic, score);
+  for (const message of messages) {
+    const text = message.message.toLowerCase();
+    let matched = false;
+
+    for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+      let score = 0;
+      for (const keyword of keywords) {
+        if (text.includes(keyword)) {
+          score += 1;
+          keywordCounter.set(keyword, (keywordCounter.get(keyword) ?? 0) + 1);
+        }
+      }
+
+      if (score > 0) {
+        matched = true;
+        topicCounter.set(topic, (topicCounter.get(topic) ?? 0) + score);
+      }
+    }
+
+    if (!matched) {
+      const words = getWordList(text);
+      for (const word of words) {
+        fallbackWordCounter.set(word, (fallbackWordCounter.get(word) ?? 0) + 1);
+      }
     }
   }
+
+  if (topicCounter.size < 5) {
+    const dynamicTopics = topEntries(Array.from(fallbackWordCounter.entries()), 6)
+      .filter(([, value]) => value >= 4)
+      .map(([label, value]) => [`Topik: ${label}`, value] as const);
+    for (const [topic, value] of dynamicTopics) {
+      topicCounter.set(topic, value);
+    }
+  }
+
+  return { topicCounter, keywordCounter };
+}
+
+function inferTopics(messages: ParsedMessage[]) {
+  const { topicCounter, keywordCounter } = countTopics(messages);
 
   const entries = topEntries(Array.from(topicCounter.entries()), 6);
   return {
     topics: entries.map(([label, value]) => ({ label, value })),
-    topicKeywords: entries.map(([label]) => label),
+    topicKeywords: topEntries(Array.from(keywordCounter.entries()), 10).map(([label]) => label),
+  };
+}
+
+function detectPrimaryTopic(message: string) {
+  const lower = message.toLowerCase();
+  let bestTopic = "General";
+  let bestScore = 0;
+
+  for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
+    let score = 0;
+    for (const keyword of keywords) {
+      if (lower.includes(keyword)) score += 1;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestTopic = topic;
+    }
+  }
+
+  if (bestScore === 0) {
+    const words = getWordList(lower);
+    if (words.length > 0) {
+      return `General: ${words[0]}`;
+    }
+  }
+
+  return bestTopic;
+}
+
+function buildTopicEvolution(messages: ParsedMessage[]) {
+  if (!messages.length) return [];
+
+  const phases = ["Fase Awal", "Fase Tengah", "Fase Terbaru"];
+  const segmentSize = Math.ceil(messages.length / phases.length);
+
+  return phases.map((phase, index) => {
+    const start = index * segmentSize;
+    const end = Math.min(messages.length, (index + 1) * segmentSize);
+    const segment = messages.slice(start, end);
+    const { topics } = inferTopics(segment);
+
+    return {
+      phase,
+      startDate: segment[0]?.timestamp ?? messages[0].timestamp,
+      endDate: segment[segment.length - 1]?.timestamp ?? messages[messages.length - 1].timestamp,
+      topics: topics.slice(0, 3),
+    };
+  });
+}
+
+function buildMessageSamples(messages: ParsedMessage[], limit = 1200) {
+  const nonEmpty = messages.filter((item) => item.message.trim().length > 0);
+  if (nonEmpty.length <= limit) {
+    return nonEmpty.map((msg) => ({
+      timestamp: msg.timestamp,
+      sender: msg.sender,
+      message: msg.message,
+      topic: detectPrimaryTopic(msg.message),
+    }));
+  }
+
+  const sampled = [];
+  const step = nonEmpty.length / limit;
+  for (let i = 0; i < limit; i++) {
+    sampled.push(nonEmpty[Math.floor(i * step)]);
+  }
+
+  return sampled.map((msg) => ({
+    timestamp: msg.timestamp,
+    sender: msg.sender,
+    message: msg.message,
+    topic: detectPrimaryTopic(msg.message),
+  }));
+}
+
+function normalizeSearchText(sender: string, message: string) {
+  return `${sender} ${message}`.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+}
+
+function buildChatIndex(messages: ParsedMessage[]) {
+  const entries: ChatIndexEntry[] = [];
+  for (const message of messages) {
+    entries.push({
+      id: message.id,
+      timestamp: message.timestamp,
+      sender: message.sender,
+      conversationId: message.conversationId,
+      message: message.message,
+      searchText: normalizeSearchText(message.sender, message.message),
+    });
+  }
+
+  return {
+    totalMessages: messages.length,
+    entries,
   };
 }
 
@@ -80,6 +211,12 @@ function topMapEntries(map: Map<string, number>, limit = 10) {
   return topEntries(Array.from(map.entries()), limit).map(([label, value]) => ({ label, value }));
 }
 
+function chronologicalMapEntries(map: Map<string, number>) {
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, value]) => ({ label, value }));
+}
+
 function extractDomains(message: string) {
   const links = message.match(/https?:\/\/[^\s]+/g) ?? [];
   return links
@@ -115,6 +252,72 @@ function computeLongestStreak(dates: string[]) {
   return maxStreak;
 }
 
+function getMinMax(values: number[]) {
+  if (values.length === 0) {
+    return { min: 0, max: 0 };
+  }
+
+  let min = values[0];
+  let max = values[0];
+
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i];
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+
+  return { min, max };
+}
+
+function median(values: number[]) {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return Math.round((sorted[middle - 1] + sorted[middle]) / 2);
+  }
+  return sorted[middle];
+}
+
+function buildConflictMoments(messages: ParsedMessage[]) {
+  const dayStats = new Map<string, { total: number; negative: number; longPause: number }>();
+
+  for (const message of messages) {
+    const day = toIsoDay(new Date(message.timestamp));
+    const stat = dayStats.get(day) ?? { total: 0, negative: 0, longPause: 0 };
+    stat.total += 1;
+
+    const lower = message.message.toLowerCase();
+    const hasNegative = NEGATIVE_WORDS.some((word) => lower.includes(word));
+    if (hasNegative) {
+      stat.negative += 1;
+    }
+
+    if ((message.replyTimeSec ?? 0) >= 6 * 60 * 60) {
+      stat.longPause += 1;
+    }
+
+    dayStats.set(day, stat);
+  }
+
+  return Array.from(dayStats.entries())
+    .map(([period, stat]) => {
+      const negativityRate = stat.total > 0 ? stat.negative / stat.total : 0;
+      const pauseRate = stat.total > 0 ? stat.longPause / stat.total : 0;
+      const score = Number((negativityRate * 70 + pauseRate * 30).toFixed(1));
+      const reason =
+        stat.negative > 0 && stat.longPause > 0
+          ? "Banyak kata bernada negatif disertai jeda balas yang panjang."
+          : stat.negative > 0
+            ? "Terjadi peningkatan pesan bernada negatif."
+            : "Respons melambat signifikan pada periode ini.";
+      return { period, score, reason };
+    })
+    .filter((item) => item.score > 5)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+}
+
 export function computeAnalytics(messages: ParsedMessage[], fileName: string): AnalysisResult {
   const participants = Array.from(new Set(messages.map((item) => item.sender)));
   const conversations = computeConversations(messages);
@@ -122,6 +325,7 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
   const perUser = new Map<string, number>();
   const perDay = new Map<string, number>();
   const perHour = new Map<string, number>();
+  const responseByHour = new Map<number, { total: number; count: number }>();
   const wordCounter = new Map<string, number>();
   const emojiCounter = new Map<string, number>();
   const linkCounter = new Map<string, number>();
@@ -232,6 +436,12 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     const hour = date.getHours();
     const hourLbl = hourLabel(hour);
     perHour.set(hourLbl, (perHour.get(hourLbl) ?? 0) + 1);
+    if (message.replyTimeSec !== null) {
+      const bucket = responseByHour.get(hour) ?? { total: 0, count: 0 };
+      bucket.total += message.replyTimeSec;
+      bucket.count += 1;
+      responseByHour.set(hour, bucket);
+    }
 
     const dayOfWeek = date.getDay(); // 0 (Sun) to 6 (Sat)
     const heatmapKey = `${dayOfWeek}-${hour}`;
@@ -301,13 +511,17 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
 
   const longestStreakDays = computeLongestStreak(Array.from(uniqueDays));
   const replies = messages.map((item) => item.replyTimeSec).filter((item): item is number => item !== null);
+  const medianReplyTimeSec = median(replies);
 
   const mostActiveDay = topEntries(Array.from(perDay.entries()), 1)[0]?.[0] ?? "-";
   const peakHourText = topEntries(Array.from(perHour.entries()), 1)[0]?.[0] ?? "00:00";
   const peakHour = Number(peakHourText.split(":")[0] ?? 0);
   const mostActiveUser = topEntries(Array.from(perUser.entries()), 1)[0]?.[0] ?? participants[0] ?? "Unknown";
-  const longestConversation = Math.max(...conversations.map((item) => item.messageCount), 0);
-  const shortestConversation = Math.min(...conversations.map((item) => item.messageCount), 0);
+  const conversationCounts = conversations.map((item) => item.messageCount);
+  const conversationMinMax = getMinMax(conversationCounts);
+  const longestConversation = conversationMinMax.max;
+  const shortestConversation = conversationMinMax.min;
+  const repliesMinMax = getMinMax(replies);
 
   const conversationStarts = new Map<string, number>();
   for (const session of conversations) {
@@ -346,6 +560,8 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
   });
 
   const { topics, topicKeywords } = inferTopics(messages);
+  const topicEvolution = buildTopicEvolution(messages);
+  const conflictMoments = buildConflictMoments(messages);
 
   const insideJokes = Array.from(wordCounter.entries())
     .filter(([word, count]) => count > 5 && count < 30 && word.length > 5)
@@ -353,21 +569,8 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     .map(([word]) => word)
     .slice(0, 3);
 
-  const messageSamples = messages
-    .slice(0, 400)
-    .map((msg) => {
-      const lower = msg.message.toLowerCase();
-      const topic =
-        Object.entries(TOPIC_KEYWORDS).find(([, keywords]) => keywords.some((key) => lower.includes(key)))?.[0] ??
-        "General";
-      return {
-        timestamp: msg.timestamp,
-        sender: msg.sender,
-        message: msg.message,
-        topic,
-      };
-    })
-    .filter((item) => item.message.trim().length > 0);
+  const messageSamples = buildMessageSamples(messages);
+  const chatIndex = buildChatIndex(messages);
 
   const importantMoments = messages
     .filter((msg) => {
@@ -380,7 +583,7 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     .map((msg) => ({
       timestamp: msg.timestamp,
       sender: msg.sender,
-      reason: "Potential decision or planning moment",
+      reason: "Momen potensial untuk keputusan atau perencanaan",
       message: msg.message.slice(0, 180),
     }));
 
@@ -389,20 +592,28 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
   const topUserStarts = conversationStarts.get(mostActiveUser) ?? 0;
   const startRate = totalStarts > 0 ? (topUserStarts / totalStarts) * 100 : 0;
 
+  const responseTimeByHour = Array.from({ length: 24 }, (_, hour) => {
+    const bucket = responseByHour.get(hour);
+    return {
+      label: hourLabel(hour),
+      value: bucket && bucket.count > 0 ? Math.round(bucket.total / bucket.count) : 0,
+    };
+  });
+
   const tone = (() => {
     const fullText = messages.map((item) => item.message.toLowerCase()).join(" ");
     const positive = POSITIVE_WORDS.filter((word) => fullText.includes(word)).length;
     const negative = NEGATIVE_WORDS.filter((word) => fullText.includes(word)).length;
-    if (positive > negative + 2) return "Supportive and positive";
-    if (negative > positive + 2) return "Tense and problem-focused";
-    return "Neutral and practical";
+    if (positive > negative + 2) return "Suportif dan positif";
+    if (negative > positive + 2) return "Cenderung tegang dan berfokus pada masalah";
+    return "Netral dan praktis";
   })();
 
   const quoteOfTheYear: QuoteOfTheYear | null = quoteCandidate ? {
     timestamp: quoteCandidate.timestamp,
     sender: quoteCandidate.sender,
     message: quoteCandidate.message,
-    context: "A standout message that defines your communication style."
+    context: "Pesan menonjol yang menggambarkan gaya komunikasi kalian."
   } : null;
 
   return {
@@ -415,8 +626,9 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       totalMessages: messages.length,
       totalConversations: conversations.length,
       averageReplyTimeSec: Math.round(average(replies)),
-      fastestReplySec: replies.length ? Math.min(...replies) : 0,
-      slowestReplySec: replies.length ? Math.max(...replies) : 0,
+      medianReplyTimeSec,
+      fastestReplySec: repliesMinMax.min,
+      slowestReplySec: repliesMinMax.max,
       mostActiveUser,
       mostActiveDay,
       peakChatHour: peakHour,
@@ -426,8 +638,9 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
     },
     activity: {
       messagesPerUser: topMapEntries(perUser, 8),
-      messagesPerDay: topMapEntries(perDay, 365), // Expand to 365 for a full year if possible
+      messagesPerDay: chronologicalMapEntries(perDay),
       messagesPerHour: topMapEntries(perHour, 24),
+      responseTimeByHour,
       activityHeatmap,
     },
     firstMessage,
@@ -440,27 +653,30 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       mediaUsage: topMapEntries(mediaCounter, 6),
       topicDistribution: topics,
       topicKeywords,
+      topicEvolution,
       insideJokes
     },
+    conflictMoments,
+    chatIndex,
     users,
     conversations,
     ai: {
-      conversationSummary: `Conversation spans ${dayjs(messages[0]?.timestamp).format("DD MMM YYYY")} to ${dayjs(
+      conversationSummary: `Percakapan berlangsung dari ${dayjs(messages[0]?.timestamp).format("DD MMM YYYY")} sampai ${dayjs(
         messages[messages.length - 1]?.timestamp,
-      ).format("DD MMM YYYY")} with ${messages.length} messages and ${participants.length} active participants.`,
-      relationshipDynamic: `${mostActiveUser} appears to lead the interaction, while others contribute around key discussion moments and follow-up questions.`,
-      communicationStyle: "Mixed casual and practical discussion, with recurring planning-oriented messages.",
+      ).format("DD MMM YYYY")} dengan total ${messages.length} pesan dan ${participants.length} partisipan aktif.`,
+      relationshipDynamic: `${mostActiveUser} terlihat paling sering mendorong alur percakapan, sementara peserta lain aktif di momen diskusi penting dan tindak lanjut.`,
+      communicationStyle: "Gaya komunikasi campuran santai dan praktis, dengan pola percakapan yang sering mengarah ke perencanaan.",
       overallTone: tone,
       importantMomentsNarrative: importantMoments.slice(0, 4).map((item) => `${dayjs(item.timestamp).format("DD MMM HH:mm")} - ${item.sender}: ${item.message}`),
       sentimentTimeline: [
-        { period: "The Beginning", sentiment: "Neutral", description: "Getting comfortable and establishing the baseline." },
-        { period: "The Middle", sentiment: tone, description: "A steady rhythm of conversation." },
+        { period: "Fase Awal", sentiment: "Netral", description: "Mulai saling menyesuaikan dan membangun ritme komunikasi." },
+        { period: "Fase Tengah", sentiment: tone, description: "Ritme percakapan mulai stabil dengan pola interaksi yang lebih jelas." },
       ],
-      theFirstEncounter: "The conversation started casually, gradually evolving into a more consistent pattern of communication.",
-      theVibe: "A dynamic mix of inside jokes, random links, and deep talks late at night.",
+      theFirstEncounter: "Percakapan dimulai dengan gaya santai, lalu berkembang menjadi pola komunikasi yang lebih konsisten.",
+      theVibe: "Campuran dinamis antara inside jokes, kirim link acak, dan obrolan mendalam di jam malam.",
       theErasTour: [
-        { era: "The Honeymoon Phase", description: "High frequency, mostly short messages and lots of emojis." },
-        { era: "The Deep Talk Era", description: "Messages got longer and responses took a bit more time, focusing on quality over quantity." }
+        { era: "Fase Hangat", description: "Frekuensi pesan tinggi, dominan pesan singkat, dan banyak emoji." },
+        { era: "Fase Obrolan Mendalam", description: "Pesan cenderung lebih panjang, jeda balas sedikit lebih lama, dan kualitas diskusi meningkat." }
       ]
     },
     importantMoments,
@@ -470,7 +686,7 @@ export function computeAnalytics(messages: ParsedMessage[], fileName: string): A
       conversationStartRate: Number(startRate.toFixed(1)),
       favoriteEmoji: mostUsedEmoji,
       topTopics: topicKeywords.slice(0, 3),
-      fastestReplyLabel: formatSeconds(replies.length ? Math.min(...replies) : 0),
+      fastestReplyLabel: formatSeconds(repliesMinMax.min),
     },
     messageSamples,
   };
