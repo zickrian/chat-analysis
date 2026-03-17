@@ -1,40 +1,65 @@
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/600.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.0.1/700.css');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #111111;
-  --muted: #f5f5f5;
-  --border: #e5e5e5;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-mondwest);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: 'Geist Sans', sans-serif;
+  --font-heading: var(--font-mondwest);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-mondwest), sans-serif;
-  letter-spacing: 0.01em;
+:root {
+  --background: #F4F4F9;
+  --foreground: #100C1F;
+  
+  /* Vibrant yet clean color palette based on landing page vibe but lighter for dashboard readability */
+  --primary: #9B63F8; 
+  --primary-foreground: #FFFFFF;
+  --secondary: #48D76D; 
+  --secondary-foreground: #FFFFFF;
+  
+  --muted: #E8E6F3;
+  --muted-foreground: #6A6783;
+  --accent: #F6C138;
+  --accent-foreground: #100C1F;
+  
+  --border: #E8E6F3;
+  --input: #E8E6F3;
+  --ring: #9B63F8;
+
+  --radius: 1rem;
 }
 
-* {
-  border-color: var(--border);
-}
-
-.fade-in {
-  animation: fadeIn 0.45s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+@layer base {
+  * {
+    border-color: var(--border);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-heading);
+    letter-spacing: 0.02em;
   }
 }
